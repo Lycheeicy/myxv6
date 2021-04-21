@@ -320,12 +320,13 @@ wait(void)
   }
 }
 
-int myrandom(int ticketnum)
+int
+myrandom(int ticketnum)
 {
   int a = 16807;
   int m = 2147483647;
-  int seed = (a * ticketnum) mod m;
-  int random=seed mod ticketnum;
+  int seed = (a * ticketnum)%m;
+  int random=seed%ticketnum;
   return random;
 }
 
