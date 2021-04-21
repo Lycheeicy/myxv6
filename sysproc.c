@@ -8,6 +8,15 @@
 #include "proc.h"
 
 int
+sys_setticket(void)
+{
+    int num;
+    if(argint(0,&num)<0)
+        return -1;
+    return setticket(num);
+}
+
+int
 sys_info(void)
 {
     int choice;
