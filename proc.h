@@ -51,6 +51,7 @@ struct proc {
   char name[16];               // Process name (debugging)
   int syscallcounter;		   // Counter for lab1 part1
   int pagenum;				   // Counter for lab1 part1
+  int ticket;             // Ticket for lab1 part2
 };
 
 // Process memory is laid out contiguously, low addresses first:
