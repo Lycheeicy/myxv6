@@ -10,6 +10,7 @@
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
+  int ticketnum=0;
 } ptable;
 
 static struct proc *initproc;
