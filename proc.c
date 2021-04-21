@@ -314,6 +314,15 @@ wait(void)
   }
 }
 
+int myrandom(int ticketnum)
+{
+  int a = 16807;
+  int m = 2147483647;
+  int seed = (a * ticketnum) mod m;
+  int random=seed mod ticketnum;
+  return random;
+}
+
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
@@ -562,4 +571,9 @@ info(int choice) {
     }
     else
         return -1;
+}
+
+void
+setticket(int num){
+  myproc()->ticket=num;
 }
