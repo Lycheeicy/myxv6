@@ -13,7 +13,8 @@ sys_setticket(void)
     int num;
     if(argint(0,&num)<0)
         return -1;
-    return setticket(num);
+    setticket(num);
+    return 1;
 }
 
 int
