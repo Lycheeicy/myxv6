@@ -7,10 +7,11 @@
 #include "proc.h"
 #include "spinlock.h"
 
+bool ticketnumset=false;
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
-  int ticketnum=0;
+  int ticketnum;
 } ptable;
 
 static struct proc *initproc;
@@ -74,11 +75,16 @@ myproc(void) {
 static struct proc*
 allocproc(void)
 {
+  
+  
   struct proc *p;
   char *sp;
 
   acquire(&ptable.lock);
-
+  if(!ticketnumset){
+    ptable.ticketnum=0;
+    ticketnumset=true;
+  }
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     if(p->state == UNUSED)
       goto found;
