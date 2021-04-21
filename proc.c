@@ -90,6 +90,7 @@ found:
   p->pid = nextpid++;
   p->syscallcounter = 0;
   p->pagenum = 0;
+  p->ticket=0;
   release(&ptable.lock);
 
   // Allocate kernel stack.
