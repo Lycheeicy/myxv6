@@ -6,12 +6,11 @@
 #include "memlayout.h"
 #include "mmu.h"
 #include "proc.h"
-
 int
 sys_setticket(void)
 {
     int num;
-    if(argint(0,&num)<0)
+    if (argint(0, &num) < 0)
         return -1;
     setticket(num);
     return 1;

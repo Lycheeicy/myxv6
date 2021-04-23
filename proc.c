@@ -6,12 +6,12 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#include <stdio.h> 
 
-int ticketnumset=0;
+int ticketnum= 0;
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
-  int ticketnum;
 } ptable;
 
 static struct proc *initproc;
@@ -75,16 +75,10 @@ myproc(void) {
 static struct proc*
 allocproc(void)
 {
-  
-  
   struct proc *p;
   char *sp;
 
   acquire(&ptable.lock);
-  if(ticketnumset==0){
-    ptable.ticketnum=0;
-    ticketnumset=1;
-  }
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     if(p->state == UNUSED)
       goto found;
@@ -97,7 +91,7 @@ found:
   p->pid = nextpid++;
   p->syscallcounter = 0;
   p->pagenum = 0;
-  p->ticket=0;
+  p->ticket = 0;
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -321,13 +315,13 @@ wait(void)
 }
 
 int
-myrandom(int ticketnum)
-{
-  int a = 16807;
-  int m = 2147483647;
-  int seed = (a * ticketnum)%m;
-  int random=seed%ticketnum;
-  return random;
+myrandom(int ticketnum,int seed) {
+    int a = 16807;
+    int m = 2147483647;
+    seed = (a*seed * ticketnum) % m;
+    if (seed == 0) return 0;
+    int random = seed % ticketnum;
+    return random;
 }
 
 //PAGEBREAK: 42
@@ -338,6 +332,7 @@ myrandom(int ticketnum)
 //  - swtch to start running that process
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
+int globalseed = 1;
 void
 scheduler(void)
 {
@@ -348,17 +343,28 @@ scheduler(void)
   for(;;){
     // Enable interrupts on this processor.
     sti();
-    
+
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
-    int chooseticket=myrandom(ptable.ticketnum);
-    int ticketbefore=0;
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      ticketbefore+=p->ticket;
-      if(p->state != RUNNABLE)
-        continue;
-      if(!(ticketbefore-p->ticket<=chooseticket&&ticketbefore>chooseticket))
-        continue;
+    int num = 0;
+    int runnableticketnum=0;
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if (p->state != RUNNABLE)
+            continue;
+        runnableticketnum += p->ticket;
+        num++;
+    }
+    int ticketbefore = 0;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if (p->state != RUNNABLE)
+          continue;
+      ticketbefore += p->ticket;
+      int ran = myrandom(runnableticketnum,globalseed++);
+      //if(p->state != RUNNABLE)
+      //  continue;
+      if (ticketbefore<ran)
+          continue;
+      
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
@@ -372,6 +378,7 @@ scheduler(void)
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       c->proc = 0;
+
     }
     release(&ptable.lock);
 
@@ -581,6 +588,8 @@ info(int choice) {
 }
 
 void
-setticket(int num){
-  myproc()->ticket=num;
+setticket(int num) {
+    ticketnum -= myproc()->ticket;
+    myproc()->ticket = num;
+    ticketnum += num;
 }
